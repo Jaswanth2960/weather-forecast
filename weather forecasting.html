@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City Weather & Background</title>
+    <style>
+        /* General Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Body Styling */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background: url('default.jpg') no-repeat center center/cover;
+            transition: background 1s ease-in-out;
+        }
+
+        /* Container */
+        .container {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 20px 30px;
+            border-radius: 10px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            width: 200px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #ff6f61;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #e04e3d;
+        }
+
+        .weather-result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body id="body">
+    <h1>Weather Forecast</h1>
+    <div class="container">
+        <input type="text" id="cityInput" placeholder="Enter city name">
+        <button onclick="fetchWeather()">Get Weather</button>
+        <div class="weather-result" id="weatherResult"></div>
+    </div>
+
+    <script>
+        const weatherApiKey = '642cb44786196b919d86fb1a3b35d24c'; // Replace with your OpenWeatherMap API key
+        const unsplashAccessKey = 'xh0lMfF-hZRg3imUQhoUbkKBvKz5kiRS19K8Uia22Jg'; // Replace with your Unsplash Access Key
+
+        async function fetchWeather() {
+            const city = document.getElementById('cityInput').value;
+            const weatherResult = document.getElementById('weatherResult');
+            const body = document.getElementById('body');
+
+            if (!city) {
+                weatherResult.innerHTML = '<p>Please enter a city name.</p>';
+                return;
+            }
+
+            try {
+                // Fetch Weather Data
+                const weatherResponse = await fetch(
+                    `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${weatherApiKey}`
+                );
+
+                if (!weatherResponse.ok) {
+                    throw new Error('City not found. Please try again.');
+                }
+
+                const weatherData = await weatherResponse.json();
+                const temperature = weatherData.main.temp;
+                const description = weatherData.weather[0].description;
+
+                weatherResult.innerHTML = `
+                    <p><strong>Weather in ${city}:</strong></p>
+                    <p>Temperature: <strong>${temperature}°C</strong></p>
+                    <p>Condition: <strong>${description}</strong></p>
+                `;
+
+                // Modify the search query to target specific places
+                let searchQuery = city;
+                if (city.toLowerCase() === "hyderabad") {
+                    searchQuery = "Charminar, Hyderabad";
+                } else if (city.toLowerCase() === "goa") {
+                    searchQuery = "Goa Beach";
+                } else if (city.toLowerCase() === "paris") {
+                    searchQuery = "Eiffel Tower, Paris";
+                } else if (city.toLowerCase() === "new york") {
+                    searchQuery = "Statue of Liberty, New York";
+                } // Add more cities as needed
+
+                // Fetch City Background Image from Unsplash
+                const unsplashResponse = await fetch(
+                    `https://api.unsplash.com/search/photos?query=${searchQuery}&client_id=${unsplashAccessKey}`
+                );
+
+                if (!unsplashResponse.ok) {
+                    throw new Error('Unable to fetch city image.');
+                }
+
+                const unsplashData = await unsplashResponse.json();
+                if (unsplashData.results.length > 0) {
+                    const cityImageUrl = unsplashData.results[0].urls.regular;
+                    body.style.background = `url('${cityImageUrl}') no-repeat center center/cover`;
+                } else {
+                    throw new Error('No city images found.');
+                }
+
+            } catch (error) {
+                weatherResult.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
